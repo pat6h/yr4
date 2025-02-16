@@ -28,30 +28,35 @@ controls.enableDamping = true; // Enable damping for smooth movement
 controls.dampingFactor = 0.25; // Set damping factor
 controls.autoRotate = false; // Disable auto rotation
 
+// Texture loader
+const textureLoader = new THREE.TextureLoader();
+
 // Add the Sun (Central Star)
 const sunGeometry = new THREE.SphereGeometry(5, 64, 64);
-const sunMaterial = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
+const sunTexture = textureLoader.load('images/sun.jpg'); // Ensure the texture file is in the same directory
+const sunMaterial = new THREE.MeshBasicMaterial({ map: sunTexture });
 const sun = new THREE.Mesh(sunGeometry, sunMaterial);
 sun.name = "Sun";
 scene.add(sun);
 
-// Define planets and their properties (name, size, distance, speed, color)
+// Define planets and their properties (name, size, distance, speed, texture)
 const planets = [
-    { name: 'Mercury', size: 0.5, distance: 10, speed: 0.005, color: 0x888888 },
-    { name: 'Venus', size: 1.5, distance: 15, speed: 0.004, color: 0xaaaa00 },
-    { name: 'Earth', size: 2, distance: 20, speed: 0.003, color: 0x0000ff },
-    { name: 'Mars', size: 1.8, distance: 25, speed: 0.002, color: 0xff0000 },
-    { name: 'Jupiter', size: 5, distance: 40, speed: 0.001, color: 0xff8800 },
-    { name: 'Saturn', size: 4.5, distance: 60, speed: 0.0009, color: 0xffff00 },
-    { name: 'Uranus', size: 3, distance: 80, speed: 0.0008, color: 0x00ffff },
-    { name: 'Neptune', size: 3, distance: 100, speed: 0.0007, color: 0x0000ff }
+    { name: 'Mercury', size: 0.5, distance: 10, speed: 0.005, texture: 'images/mercury.jpg' },
+    { name: 'Venus', size: 1.5, distance: 15, speed: 0.004, texture: 'images/venus.jpg' },
+    { name: 'Earth', size: 2, distance: 20, speed: 0.003, texture: 'images/earth.jpg' },
+    { name: 'Mars', size: 1.8, distance: 25, speed: 0.002, texture: 'images/mars.jpg' },
+    { name: 'Jupiter', size: 5, distance: 40, speed: 0.001, texture: 'images/jupiter.jpg' },
+    { name: 'Saturn', size: 4.5, distance: 60, speed: 0.0009, texture: 'images/saturn.jpg' },
+    { name: 'Uranus', size: 3, distance: 80, speed: 0.0008, texture: 'images/uranus.jpg' },
+    { name: 'Neptune', size: 3, distance: 100, speed: 0.0007, texture: 'images/neptune.jpg' }
 ];
 
 // Create planet meshes and add them to the scene
 const planetMeshes = [];
 planets.forEach(planet => {
     const geometry = new THREE.SphereGeometry(planet.size, 64, 64);
-    const material = new THREE.MeshBasicMaterial({ color: planet.color });
+    const texture = textureLoader.load(planet.texture); // Load the texture
+    const material = new THREE.MeshBasicMaterial({ map: texture });
     const planetMesh = new THREE.Mesh(geometry, material);
     planetMesh.name = planet.name;
     planetMeshes.push({ mesh: planetMesh, distance: planet.distance, speed: planet.speed });
@@ -60,18 +65,19 @@ planets.forEach(planet => {
 
 // Define moons (orbit around specific planets)
 const moons = [
-    { name: 'Moon', planet: 'Earth', size: 0.5, distance: 3, speed: 0.01, color: 0xaaaaaa, inclination: 0.1 },
-    { name: 'Phobos', planet: 'Mars', size: 0.3, distance: 1.5, speed: 0.015, color: 0x888888, inclination: 0.2 },
-    { name: 'Deimos', planet: 'Mars', size: 0.2, distance: 2, speed: 0.02, color: 0x777777, inclination: 0.3 },
-    { name: 'Io', planet: 'Jupiter', size: 1, distance: 5, speed: 0.005, color: 0xffff00, inclination: 0.1 },
-    { name: 'Europa', planet: 'Jupiter', size: 0.8, distance: 7, speed: 0.004, color: 0xcccccc, inclination: 0.2 }
+    { name: 'Moon', planet: 'Earth', size: 0.5, distance: 3, speed: 0.01, texture: 'images/moon.jpg', inclination: 0.1 },
+    { name: 'Phobos', planet: 'Mars', size: 0.3, distance: 1.5, speed: 0.015, texture: 'images/phobos.jpg', inclination: 0.2 },
+    { name: 'Deimos', planet: 'Mars', size: 0.2, distance: 2, speed: 0.02, texture: 'images/deimos.jpg', inclination: 0.3 },
+    { name: 'Io', planet: 'Jupiter', size: 1, distance: 5, speed: 0.005, texture: 'images/io.jpg', inclination: 0.1 },
+    { name: 'Europa', planet: 'Jupiter', size: 0.8, distance: 7, speed: 0.004, texture: 'images/europa.jpg', inclination: 0.2 }
 ];
 
 // Create moon meshes and add them to the scene
 const moonMeshes = [];
 moons.forEach(moon => {
     const geometry = new THREE.SphereGeometry(moon.size, 32, 32);
-    const material = new THREE.MeshBasicMaterial({ color: moon.color });
+    const texture = textureLoader.load(moon.texture); // Load the texture
+    const material = new THREE.MeshBasicMaterial({ map: texture });
     const moonMesh = new THREE.Mesh(geometry, material);
     moonMesh.name = moon.name;
     moonMeshes.push({ mesh: moonMesh, planet: moon.planet, distance: moon.distance, speed: moon.speed, inclination: moon.inclination });
@@ -134,7 +140,7 @@ function onMouseMove(event) {
 
 function getIntersectedObject() {
     raycaster.setFromCamera(mouse, camera);
-    intersects = raycaster.intersectObjects([sun, ...planetMeshes.map(p => p.mesh), ...moonMeshes.map(m => m.mesh), asteroidMesh]);
+    const intersects = raycaster.intersectObjects([sun, ...planetMeshes.map(p => p.mesh), ...moonMeshes.map(m => m.mesh)]);
     return intersects[0];
 }
 
@@ -147,10 +153,7 @@ const countdownInterval = setInterval(() => {
     countdownDisplay.innerHTML = `Countdown: ${countdown}s`;
     if (countdown <= 0) {
         clearInterval(countdownInterval);
-        countdownDisplay.innerHTML = 'Start!';
-        setTimeout(() => {
-            countdownDisplay.style.display = 'none';
-        }, 1000);
+        countdownDisplay.style.display = 'none';
     }
 }, 1000);
 
@@ -172,94 +175,29 @@ function addStars() {
 }
 addStars();
 
-// Define asteroid properties
-const asteroidData = {
-    name: '2024 YR4',
-    size: 0.1,
-    color: 0xff0000,
-    initialPosition: new THREE.Vector3(0, 0, 0),
-    trajectory: []
-};
-
-// Create asteroid mesh
-const asteroidGeometry = new THREE.SphereGeometry(asteroidData.size, 32, 32);
-const asteroidMaterial = new THREE.MeshBasicMaterial({ color: asteroidData.color });
-const asteroidMesh = new THREE.Mesh(asteroidGeometry, asteroidMaterial);
-asteroidMesh.name = asteroidData.name;
-scene.add(asteroidMesh);
-
-// Fetch asteroid trajectory data from NASA JPL Small Body Database API
-async function fetchAsteroidTrajectory() {
+// Load trajectories from JSON
+async function loadTrajectories() {
     try {
-        const response = await axios.get('https://ssd-api.jpl.nasa.gov/horizons.api', {
-            params: {
-                command: '2024 YR4',
-                format: 'json',
-                make_ephem: 'YES',
-                table_type: 'OBSERVER',
-                start_time: '2023-01-01',
-                stop_time: '2032-12-31',
-                step_size: '1d'
-            }
+        const response = await fetch('trajectories.json');
+        const trajectories = await response.json();
+
+        // Create trajectory lines for planets and moons
+        Object.keys(trajectories).forEach((name) => {
+            if (name === 'Sun') return; // Skip the Sun
+
+            const positions = trajectories[name];
+            const geometry = new THREE.BufferGeometry().setFromPoints(
+                positions.map(pos => new THREE.Vector3(...pos))
+            );
+            const material = new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 1 });
+            const line = new THREE.Line(geometry, material);
+            line.name = `${name} Trajectory`;
+            scene.add(line);
         });
-
-        const ephem = response.data.ephem;
-        const trajectory = [];
-
-        ephem.forEach(entry => {
-            const date = new Date(entry.date);
-            const x = parseFloat(entry['x']) * 1000; // Scale down the coordinates for visualization
-            const y = parseFloat(entry['y']) * 1000; // Scale down the coordinates for visualization
-            const z = parseFloat(entry['z']) * 1000; // Scale down the coordinates for visualization
-            trajectory.push(new THREE.Vector3(x, y, z));
-        });
-
-        asteroidData.trajectory = trajectory;
-        drawAsteroidTrajectory();
     } catch (error) {
-        console.error('Error fetching asteroid trajectory:', error);
+        console.error('Error loading trajectories:', error);
     }
 }
-
-// Draw asteroid trajectory
-function drawAsteroidTrajectory() {
-    if (asteroidData.trajectory.length === 0) return;
-
-    // Remove previous trajectory line if exists
-    const existingLine = scene.getObjectByName('asteroidTrajectory');
-    if (existingLine) {
-        scene.remove(existingLine);
-    }
-
-    const geometry = new THREE.BufferGeometry().setFromPoints(asteroidData.trajectory);
-    const material = new THREE.LineBasicMaterial({ color: 0xff0000, linewidth: 2 });
-    const line = new THREE.Line(geometry, material);
-    line.name = 'asteroidTrajectory';
-    scene.add(line);
-}
-
-// Animate asteroid along trajectory
-let asteroidIndex = 0;
-function animateAsteroid() {
-    if (asteroidData.trajectory.length === 0) return;
-
-    asteroidMesh.position.copy(asteroidData.trajectory[asteroidIndex]);
-    asteroidIndex = (asteroidIndex + 1) % asteroidData.trajectory.length;
-}
-
-// Periodically fetch and update asteroid trajectory
-async function updateAsteroidTrajectory() {
-    while (true) {
-        await fetchAsteroidTrajectory();
-        await new Promise(resolve => setTimeout(resolve, 60000)); // Fetch every minute
-    }
-}
-
-// Fetch initial asteroid trajectory and start animation
-fetchAsteroidTrajectory().then(() => {
-    drawAsteroidTrajectory();
-    animate();
-});
 
 // Handle animation of planets, moons, and trajectories
 function animate() {
@@ -300,13 +238,15 @@ function animate() {
         nameDisplay.style.display = 'none';
     }
 
-    // Animate asteroid
-    animateAsteroid();
-
     // Update controls and render scene
     controls.update();
     renderer.render(scene, camera);
 }
+
+// Load trajectories and start the animation
+loadTrajectories().then(() => {
+    animate();
+});
 
 // Handle window resize
 window.addEventListener('resize', () => {
